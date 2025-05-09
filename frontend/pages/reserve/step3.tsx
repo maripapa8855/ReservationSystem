@@ -9,26 +9,32 @@ interface Doctor {
 
 export default function Step3SelectDoctor() {
   const router = useRouter();
-  const { facility_id, department_id } = router.query;
+  const { group_id, facility_id, department_id } = router.query;
+
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [selectedDoctor, setSelectedDoctor] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!facility_id || !department_id) return;
+    if (!group_id || !facility_id || !department_id) return;
 
     axios
-      .get(`http://localhost:5000/doctors?facility_id=${facility_id}&department_id=${department_id}`, {
+      .get(`http://localhost:5000/doctors?group_id=${group_id}&facility_id=${facility_id}&department_id=${department_id}`, {
         withCredentials: true,
       })
       .then((res) => setDoctors(res.data))
       .catch((err) => console.error('医師取得エラー:', err));
-  }, [facility_id, department_id]);
+  }, [group_id, facility_id, department_id]);
 
   const handleNext = () => {
     if (selectedDoctor) {
       router.push({
         pathname: '/reserve/step4',
-        query: { facility_id, department_id, doctor_id: selectedDoctor },
+        query: {
+          group_id,
+          facility_id,
+          department_id,
+          doctor_id: selectedDoctor,
+        },
       });
     } else {
       alert('医師を選択してください');

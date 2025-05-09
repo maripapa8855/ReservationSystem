@@ -8,4 +8,6 @@ router.get('/', adminQuestionnaireController.getAllQuestionnaires);
 // 問診詳細取得
 router.get('/:id', adminQuestionnaireController.getQuestionnaireById);
 
+router.post('/register', adminController.registerAdmin);
+
 module.exports = router;

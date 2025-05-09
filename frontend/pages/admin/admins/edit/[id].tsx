@@ -9,22 +9,22 @@ export default function AdminEditPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
-  const [role, setRole] = useState("admin");
+  const [role, setRole] = useState("facility_admin");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!id) return;
 
-    const fetchUser = async () => {
+    const fetchAdmin = async () => {
       try {
-        const res = await axios.get(`http://localhost:5000/users/${id}`, {
+        const res = await axios.get(`http://localhost:5000/admin/admins/${id}`, {
           withCredentials: true,
         });
-        const user = res.data;
-        setName(user.name);
-        setEmail(user.email);
-        setPhone(user.phone);
-        setRole(user.role);
+        const admin = res.data;
+        setName(admin.name);
+        setEmail(admin.email);
+        setPhone(admin.phone);
+        setRole(admin.role);
       } catch (err) {
         console.error("管理者取得エラー:", err);
         alert("管理者の情報取得に失敗しました");
@@ -33,15 +33,15 @@ export default function AdminEditPage() {
         setLoading(false);
       }
     };
-
-    fetchUser();
+    
+    fetchAdmin();
   }, [id]);
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
       await axios.put(
-        `http://localhost:5000/users/${id}`,
+        `http://localhost:5000/admin/admins/${id}`,
         { name, email, phone, role },
         { withCredentials: true }
       );
@@ -96,7 +96,7 @@ export default function AdminEditPage() {
             onChange={(e) => setRole(e.target.value)}
             className="border px-3 py-2 rounded w-full"
           >
-            <option value="admin">施設管理者</option>
+            <option value="facility_admin">施設管理者</option>
             <option value="group_admin">施設グループ管理者</option>
             <option value="viewer">閲覧専用</option>
           </select>

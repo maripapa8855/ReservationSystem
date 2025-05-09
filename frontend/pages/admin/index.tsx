@@ -20,11 +20,29 @@ export default function AdminMenu() {
       });
   }, []);
 
+  const handleLogout = async () => {
+    try {
+      await axios.post("http://localhost:5000/admin/logout", {}, { withCredentials: true });
+      router.push("/admin/login");
+    } catch (err) {
+      console.error("ログアウトエラー:", err);
+      alert("ログアウトに失敗しました");
+    }
+  };
+
   if (!authChecked) return <p className="p-4">認証確認中...</p>;
 
   return (
     <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">管理者メニュー</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold">管理者メニュー</h1>
+        <button
+          onClick={handleLogout}
+          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
+        >
+          ログアウト
+        </button>
+      </div>
       <ul className="space-y-4">
         <li>
           <Link href="/admin/facilities" className="text-blue-600 underline">

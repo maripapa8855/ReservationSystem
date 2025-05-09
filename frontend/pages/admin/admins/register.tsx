@@ -1,55 +1,55 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import axios from "axios";
 import { useRouter } from "next/router";
 
-export default function AdminRegister() {
+export default function AdminRegisterPage() {
   const router = useRouter();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [password, setPassword] = useState("");
-  const [role, setRole] = useState("facility_admin");
+  const [role, setRole] = useState("facilityadmin");
   const [groupId, setGroupId] = useState<number | null>(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  const [groups, setGroups] = useState<{ id: number; name: string }[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // 認証＋group_id 取得
-    axios
-      .get("http://localhost:5000/admin/check", { withCredentials: true })
-      .then((res) => {
-        setGroupId(res.data.group_id);
-        setAuthChecked(true);
-      })
-      .catch(() => router.push("/admin/login"));
+    const fetchGroups = async () => {
+      try {
+        const res = await axios.get("http://localhost:5000/groups");
+        setGroups(res.data);
+      } catch (err) {
+        console.error("グループ取得エラー:", err);
+        alert("グループの取得に失敗しました");
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchGroups();
   }, []);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!groupId) {
-      alert("group_id が取得できていません");
-      return;
-    }
-
     try {
       await axios.post(
         "http://localhost:5000/admin/register",
         { name, email, phone, password, role, group_id: groupId },
         { withCredentials: true }
       );
-      alert("登録完了");
-      router.push("/admin");
+      alert("登録しました");
+      router.push("/admin/admins");
     } catch (err) {
       console.error("登録エラー:", err);
       alert("登録に失敗しました");
     }
   };
 
-  if (!authChecked) return <p className="p-4">認証確認中...</p>;
+  if (loading) return <p className="p-6">読み込み中...</p>;
 
   return (
-    <div className="p-4 max-w-md mx-auto">
+    <div className="p-6 max-w-md mx-auto">
       <h1 className="text-xl font-bold mb-4">管理者登録</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
+      <form onSubmit={handleRegister} className="space-y-4">
         <div>
           <label className="block mb-1">氏名</label>
           <input
@@ -61,7 +61,7 @@ export default function AdminRegister() {
           />
         </div>
         <div>
-          <label className="block mb-1">メールアドレス</label>
+          <label className="block mb-1">メール</label>
           <input
             type="email"
             value={email}
@@ -81,6 +81,34 @@ export default function AdminRegister() {
           />
         </div>
         <div>
+          <label className="block mb-1">法人名</label>
+          <select
+            value={groupId ?? ""}
+            onChange={(e) => setGroupId(Number(e.target.value))}
+            className="border px-3 py-2 rounded w-full"
+            required
+          >
+            <option value="">選択してください</option>
+            {groups.map((group) => (
+              <option key={group.id} value={group.id}>
+                {group.name}
+              </option>
+            ))}
+          </select>
+        </div>
+        <div>
+          <label className="block mb-1">権限</label>
+          <select
+            value={role}
+            onChange={(e) => setRole(e.target.value)}
+            className="border px-3 py-2 rounded w-full"
+          >
+            <option value="facilityadmin">施設管理者</option>
+            <option value="groupadmin">施設グループ管理者</option>
+            <option value="viewer">閲覧専用</option>
+          </select>
+        </div>
+        <div>
           <label className="block mb-1">パスワード</label>
           <input
             type="password"
@@ -90,27 +118,11 @@ export default function AdminRegister() {
             required
           />
         </div>
-        <div>
-          <label className="block mb-1">権限ロール</label>
-          <select
-            value={role}
-            onChange={(e) => setRole(e.target.value)}
-            className="border px-3 py-2 rounded w-full"
-          >
-            <option value="facility_admin">施設管理者</option>
-            <option value="group_admin">施設グループ管理者</option>
-            <option value="viewer">閲覧専用</option>
-          </select>
-        </div>
-
-        {/* group_id は自動補完、送信のみ */}
-        <input type="hidden" value={groupId ?? ""} readOnly />
-
         <button
           type="submit"
           className="bg-blue-600 text-white px-4 py-2 rounded"
         >
-          登録
+          登録する
         </button>
       </form>
     </div>

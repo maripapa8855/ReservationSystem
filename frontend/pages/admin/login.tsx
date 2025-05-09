@@ -1,76 +1,112 @@
-import { useEffect, useState } from "react";
-import { useRouter } from "next/router";
+import { useState } from "react";
 import axios from "axios";
-import Link from "next/link";
+import { useRouter } from "next/router";
 
-export default function AdminMenu() {
+export default function AdminRegisterPage() {
   const router = useRouter();
-  const [authChecked, setAuthChecked] = useState(false);
-  const [role, setRole] = useState("");
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    password: "",
+    role: "facilityadmin",
+    group_id: 1,
+  });
+  const [error, setError] = useState("");
 
-  useEffect(() => {
-    axios
-      .get("http://localhost:5000/admin/check", { withCredentials: true })
-      .then((res) => {
-        setRole(res.data.role);
-        setAuthChecked(true);
-      })
-      .catch(() => {
-        router.push("/admin/login");
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setForm({ ...form, [e.target.name]: e.target.value });
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+
+    try {
+      const res = await axios.post("http://localhost:5000/admin/register", form, {
+        withCredentials: true,
       });
-  }, []);
-
-  if (!authChecked) return <p className="p-4">認証確認中...</p>;
+      alert(res.data.message || "登録成功");
+      router.push("/admin/login");
+    } catch (err: any) {
+      console.error("登録エラー:", err);
+      setError(err.response?.data?.message || "登録に失敗しました");
+    }
+  };
 
   return (
-    <div className="p-6">
-      <h1 className="text-2xl font-bold mb-6">管理者メニュー</h1>
-      <ul className="space-y-4">
-        <li>
-          <Link href="/admin/facilities" className="text-blue-600 underline">
-            🏥 施設管理
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/doctors" className="text-blue-600 underline">
-            👨‍⚕️ 医師管理
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/departments" className="text-blue-600 underline">
-            🏷 診療科管理
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/group" className="text-blue-600 underline">
-            🏢 施設グループ管理
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/holidays" className="text-blue-600 underline">
-            📅 休診日管理
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/notifications" className="text-blue-600 underline">
-            🔔 通知設定
-          </Link>
-        </li>
-        {role === "super_admin" && (
-          <>
-            <li>
-              <Link href="/admin/admins" className="text-blue-600 underline">
-                👥 管理者一覧
-              </Link>
-            </li>
-            <li>
-              <Link href="/admin/admins/register" className="text-blue-600 underline">
-                👤 管理者の追加登録
-              </Link>
-            </li>
-          </>
-        )}
-      </ul>
+    <div className="p-6 max-w-md mx-auto">
+      <h1 className="text-2xl font-bold mb-4">管理者登録</h1>
+      {error && <p className="text-red-600 mb-4">{error}</p>}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="flex flex-col">
+          <label className="mb-1">名前</label>
+          <input
+            type="text"
+            name="name"
+            className="p-2 border rounded"
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="flex flex-col">
+          <label className="mb-1">メールアドレス</label>
+          <input
+            type="email"
+            name="email"
+            className="p-2 border rounded"
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="flex flex-col">
+          <label className="mb-1">電話番号</label>
+          <input
+            type="text"
+            name="phone"
+            className="p-2 border rounded"
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="flex flex-col">
+          <label className="mb-1">パスワード</label>
+          <input
+            type="password"
+            name="password"
+            className="p-2 border rounded"
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="flex flex-col">
+          <label className="mb-1">グループID</label>
+          <input
+            type="number"
+            name="group_id"
+            className="p-2 border rounded"
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <div className="flex flex-col">
+          <label className="mb-1">役割</label>
+          <input
+            type="text"
+            name="role"
+            className="p-2 border rounded"
+            value={form.role}
+            onChange={handleChange}
+            required
+          />
+        </div>
+        <button
+          type="submit"
+          className="w-full bg-blue-600 text-white p-2 rounded hover:bg-blue-700"
+        >
+          登録
+        </button>
+      </form>
     </div>
   );
 }

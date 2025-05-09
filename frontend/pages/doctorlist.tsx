@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useRouter } from 'next/router';
 import axios from 'axios';
 
 interface Doctor {
@@ -9,15 +10,21 @@ interface Doctor {
 }
 
 export default function DoctorList() {
+  const router = useRouter();
+  const { group_id, facility_id } = router.query;
+
   const [doctors, setDoctors] = useState<Doctor[]>([]);
 
   useEffect(() => {
-    fetchDoctors();
-  }, []);
+    if (group_id && facility_id) {
+      fetchDoctors();
+    }
+  }, [group_id, facility_id]);
 
   const fetchDoctors = async () => {
     try {
       const res = await axios.get('http://localhost:5000/doctors', {
+        params: { group_id, facility_id },
         withCredentials: true,
       });
       setDoctors(res.data);
@@ -46,31 +53,35 @@ export default function DoctorList() {
   return (
     <div style={{ padding: '20px' }}>
       <h2>医師一覧</h2>
-      <table border={1} cellPadding={8}>
-        <thead>
-          <tr>
-            <th>ID</th>
-            <th>名前</th>
-            <th>診療科</th>
-            <th>施設</th>
-            <th>操作</th>
-          </tr>
-        </thead>
-        <tbody>
-          {doctors.map((doc) => (
-            <tr key={doc.id}>
-              <td>{doc.id}</td>
-              <td>{doc.name}</td>
-              <td>{doc.department_name}</td>
-              <td>{doc.facility_name}</td>
-              <td>
-                <button onClick={() => handleEdit(doc.id)}>編集</button>{' '}
-                <button onClick={() => handleDelete(doc.id)}>削除</button>
-              </td>
+      {(!group_id || !facility_id) ? (
+        <p>施設とグループを選択してください。</p>
+      ) : (
+        <table border={1} cellPadding={8}>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>名前</th>
+              <th>診療科</th>
+              <th>施設</th>
+              <th>操作</th>
             </tr>
-          ))}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {doctors.map((doc) => (
+              <tr key={doc.id}>
+                <td>{doc.id}</td>
+                <td>{doc.name}</td>
+                <td>{doc.department_name}</td>
+                <td>{doc.facility_name}</td>
+                <td>
+                  <button onClick={() => handleEdit(doc.id)}>編集</button>{' '}
+                  <button onClick={() => handleDelete(doc.id)}>削除</button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
     </div>
   );
 }

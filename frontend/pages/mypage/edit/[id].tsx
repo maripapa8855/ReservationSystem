@@ -15,7 +15,7 @@ interface Reservation {
 
 export default function EditReservationPage() {
   const router = useRouter();
-  const { id } = router.query;
+  const { id, group_id, facility_id } = router.query;
 
   const [reservation, setReservation] = useState<Reservation | null>(null);
   const [shifts, setShifts] = useState<any[]>([]);
@@ -26,7 +26,7 @@ export default function EditReservationPage() {
   const [visitType, setVisitType] = useState('');
 
   useEffect(() => {
-    if (!id) return;
+    if (!id || !group_id || !facility_id) return;
 
     const fetchData = async () => {
       try {
@@ -38,8 +38,8 @@ export default function EditReservationPage() {
         setVisitType(data.visit_type);
 
         const [shiftsRes, facilityRes, holidaysRes] = await Promise.all([
-          axios.get(`http://localhost:5000/shifts?doctor_id=${data.doctor_id}`, { withCredentials: true }),
-          axios.get(`http://localhost:5000/facilities/${data.facility_id}`, { withCredentials: true }),
+          axios.get(`http://localhost:5000/shifts?group_id=${group_id}&doctor_id=${data.doctor_id}`, { withCredentials: true }),
+          axios.get(`http://localhost:5000/facilities/${data.facility_id}?group_id=${group_id}`, { withCredentials: true }),
           axios.get(`http://localhost:5000/holidays?facility_id=${data.facility_id}`, { withCredentials: true }),
         ]);
 
@@ -49,12 +49,12 @@ export default function EditReservationPage() {
       } catch (err) {
         console.error('読み込みエラー:', err);
         alert('予約情報の取得に失敗しました');
-        router.push('/mypage');
+        router.push(`/mypage?group_id=${group_id}&facility_id=${facility_id}`);
       }
     };
 
     fetchData();
-  }, [id]);
+  }, [id, group_id, facility_id]);
 
   const generateTimeOptions = () => {
     const options: string[] = [];
@@ -75,13 +75,11 @@ export default function EditReservationPage() {
     const selectedDateTime = new Date(`${reservation.date}T${time}`);
     const now = new Date();
 
-    // 休診日チェック
     if (closedDays.includes(reservation.date)) {
       alert('この日は休診日のため予約できません。');
       return false;
     }
 
-    // 予約受付最大日数チェック
     const maxDays = facility.max_reservation_days ?? 30;
     const maxDate = new Date();
     maxDate.setDate(now.getDate() + maxDays);
@@ -90,7 +88,6 @@ export default function EditReservationPage() {
       return false;
     }
 
-    // 予約受付最小時間チェック
     const minHours = facility.min_hours_before_reservation ?? 1;
     const minLimit = new Date(now.getTime() + minHours * 60 * 60 * 1000);
     if (selectedDateTime < minLimit) {
@@ -98,7 +95,6 @@ export default function EditReservationPage() {
       return false;
     }
 
-    // キャンセル制限チェック（編集画面でもキャンセル変更不可をガード）
     if (status === 'キャンセル') {
       const minCancelHours = facility.min_hours_before_cancel ?? 2;
       const cancelLimit = new Date(now.getTime() + minCancelHours * 60 * 60 * 1000);
@@ -126,7 +122,7 @@ export default function EditReservationPage() {
       }, { withCredentials: true });
 
       alert('予約を更新しました');
-      router.push('/mypage');
+      router.push(`/mypage?group_id=${group_id}&facility_id=${facility_id}`);
     } catch (err) {
       console.error('更新エラー:', err);
       alert('予約更新に失敗しました');

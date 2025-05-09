@@ -4,7 +4,7 @@ import axios from 'axios';
 
 export default function Step4ConfirmReservation() {
   const router = useRouter();
-  const { facility_id, department_id, doctor_id } = router.query;
+  const { group_id, facility_id, department_id, doctor_id } = router.query;
 
   const [date, setDate] = useState('');
   const [time, setTime] = useState('');
@@ -13,12 +13,12 @@ export default function Step4ConfirmReservation() {
 
   // シフト取得
   useEffect(() => {
-    if (!doctor_id) return;
+    if (!group_id || !doctor_id) return;
     axios
-      .get(`http://localhost:5000/schedules?doctor_id=${doctor_id}`, { withCredentials: true })
+      .get(`http://localhost:5000/schedules?group_id=${group_id}&doctor_id=${doctor_id}`, { withCredentials: true })
       .then((res) => setShifts(res.data))
       .catch((err) => console.error('シフト取得エラー:', err));
-  }, [doctor_id]);
+  }, [group_id, doctor_id]);
 
   // 時間選択肢生成
   useEffect(() => {
@@ -44,8 +44,8 @@ export default function Step4ConfirmReservation() {
   // 上限チェック
   const checkAvailability = async () => {
     const res = await axios.get('http://localhost:5000/reservations/slot-count', {
-      params: { doctor_id, date, time },
-      withCredentials: true
+      params: { group_id, doctor_id, date, time },
+      withCredentials: true,
     });
     return res.data.count < res.data.capacity;
   };
@@ -66,15 +66,16 @@ export default function Step4ConfirmReservation() {
       await axios.post(
         'http://localhost:5000/reservations',
         {
+          group_id,
           facility_id,
           department_id,
           doctor_id,
           date,
-          time
+          time,
         },
         { withCredentials: true }
       );
-      router.push('/reserve/complete');
+      router.push(`/reserve/complete?group_id=${group_id}&facility_id=${facility_id}`);
     } catch (err) {
       console.error('予約登録エラー:', err);
       alert('予約登録に失敗しました');
@@ -107,7 +108,9 @@ export default function Step4ConfirmReservation() {
           >
             <option value="">-- 時間を選択 --</option>
             {availableTimes.map((t) => (
-              <option key={t} value={t}>{t}</option>
+              <option key={t} value={t}>
+                {t}
+              </option>
             ))}
           </select>
         </div>

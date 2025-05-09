@@ -47,7 +47,34 @@ const getFacilityByAdmin = async (req, res) => {
   }
 };
 
+// group_id + facility_id で単一施設取得
+const getFacilityById = async (req, res) => {
+  const { id } = req.params;
+  const { group_id } = req.query;
+
+  if (!group_id) {
+    return res.status(400).json({ message: 'group_idが指定されていません' });
+  }
+
+  try {
+    const result = await pool.query(
+      'SELECT * FROM facilities WHERE id = $1 AND group_id = $2',
+      [id, group_id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: '施設が見つかりません' });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error('施設取得エラー:', err.message);
+    res.status(500).json({ message: 'サーバーエラーが発生しました' });
+  }
+};
+
 module.exports = {
   getAllFacilities,
   getFacilityByAdmin,
+  getFacilityById,
 };

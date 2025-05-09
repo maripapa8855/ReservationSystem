@@ -147,6 +147,15 @@ const deleteReservation = async (req, res) => {
   }
 };
 
+const updateReservation = async (req, res) => {
+  // 仮の処理（未実装ならこのままでもOK）
+  res.status(501).json({ message: '未実装の機能です' });
+};
+
+const getMyReservations = async (req, res) => {
+  res.status(501).json({ message: '未実装の機能です' });
+};
+
 // 他エンドポイント（getMyReservations, getShiftsByDoctor, getReservationCounts など）は必要に応じて保持・整理
 
 module.exports = {
@@ -159,4 +168,6 @@ module.exports = {
   getAllReservationsForAdmin: async (req, res) => { /* 略 */ },
   getReservationById: async (req, res) => { /* 略 */ },
   getReservationCounts: async (req, res) => { /* 略 */ },
+  updateReservation,
+  getMyReservations,
 };

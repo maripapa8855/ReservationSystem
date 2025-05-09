@@ -13,6 +13,8 @@ interface Reservation {
 
 export default function MyPage() {
   const router = useRouter();
+  const { group_id, facility_id } = router.query;
+
   const [reservations, setReservations] = useState<Reservation[]>([]);
   const [error, setError] = useState<string | null>(null);
 
@@ -20,23 +22,27 @@ export default function MyPage() {
     const fetchReservations = async () => {
       try {
         const res = await axios.get('http://localhost:5000/reservations/mypage', {
+          params: { group_id, facility_id },
           withCredentials: true,
         });
         setReservations(res.data);
       } catch (err) {
         console.error('予約取得エラー:', err);
         setError('ログインしてください');
-        router.push('/login');
+        router.push(`/login?group_id=${group_id}&facility_id=${facility_id}`);
       }
     };
 
-    fetchReservations();
-  }, []);
+    if (group_id && facility_id) {
+      fetchReservations();
+    }
+  }, [group_id, facility_id]);
 
   const handleCancel = async (id: number) => {
     if (!confirm('この予約をキャンセルしますか？')) return;
     try {
       await axios.delete(`http://localhost:5000/reservations/${id}`, {
+        params: { group_id, facility_id },
         withCredentials: true,
       });
       setReservations((prev) => prev.filter((r) => r.id !== id));
@@ -75,7 +81,7 @@ export default function MyPage() {
                 <td className="p-2 border">{r.status}</td>
                 <td className="p-2 border space-x-2">
                   <Link
-                    href={`/reservations/edit/${r.id}`}
+                    href={`/reservations/edit/${r.id}?group_id=${group_id}&facility_id=${facility_id}`}
                     className="text-blue-600 hover:underline"
                   >
                     編集

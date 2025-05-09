@@ -9,24 +9,27 @@ interface Department {
 
 export default function Step2SelectDepartment() {
   const router = useRouter();
-  const { facility_id } = router.query;
+  const { group_id, facility_id } = router.query;
+
   const [departments, setDepartments] = useState<Department[]>([]);
   const [selectedDepartment, setSelectedDepartment] = useState<number | null>(null);
 
   useEffect(() => {
-    if (!facility_id) return;
+    if (!group_id || !facility_id) return;
 
     axios
-      .get(`http://localhost:5000/departments?facility_id=${facility_id}`, { withCredentials: true })
+      .get(`http://localhost:5000/departments?group_id=${group_id}&facility_id=${facility_id}`, {
+        withCredentials: true,
+      })
       .then((res) => setDepartments(res.data))
       .catch((err) => console.error('診療科取得エラー:', err));
-  }, [facility_id]);
+  }, [group_id, facility_id]);
 
   const handleNext = () => {
     if (selectedDepartment) {
       router.push({
         pathname: '/reserve/step3',
-        query: { facility_id, department_id: selectedDepartment },
+        query: { group_id, facility_id, department_id: selectedDepartment },
       });
     } else {
       alert('診療科を選択してください');

@@ -133,3 +133,6 @@ app.delete('/reservations/:id', async (req, res) => {
 app.listen(port, () => {
   console.log(`🚀 API Server running at http://localhost:${port}`);
 });
+
+const adminRoutes = require('./routes/adminRoutes');
+app.use('/admin', adminRoutes);

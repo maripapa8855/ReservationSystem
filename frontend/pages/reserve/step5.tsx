@@ -2,9 +2,10 @@ import { useRouter } from 'next/router';
 
 export default function Step5Complete() {
   const router = useRouter();
+  const { group_id, facility_id } = router.query;
 
   const handleGoToMyPage = () => {
-    router.push('/mypage');
+    router.push(`/mypage?group_id=${group_id}&facility_id=${facility_id}`);
   };
 
   return (
