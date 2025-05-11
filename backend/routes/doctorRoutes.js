@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const pool = require('../db');
+const { authenticate } = require('../middleware/authMiddleware');
 const {
   getDoctors,
   getDoctorsByFilter,
@@ -8,18 +9,19 @@ const {
 } = require('../controllers/doctorController');
 
 // 医師一覧取得（管理画面用 全件 or group_id フィルター）
-router.get('/', getDoctors);
+router.get('/', authenticate, getDoctors);
 
 // 医師フィルター検索（診療科 + 施設）フロントエンド用
-router.get('/search', getDoctorsByFilter);
+router.get('/search', authenticate, getDoctorsByFilter);
 
 // 医師登録
-router.post('/', createDoctor);
+router.post('/', authenticate, createDoctor);
 
 // 診療科一覧取得
-router.get('/departments', async (req, res) => {
+router.get('/departments', authenticate, async (req, res) => {
+  const { facility_id } = req.user;
   try {
-    const result = await pool.query('SELECT * FROM departments ORDER BY id');
+    const result = await pool.query('SELECT * FROM departments WHERE facility_id = $1 ORDER BY id', [facility_id]);
     res.json(result.rows);
   } catch (err) {
     console.error('診療科取得エラー:', err);
@@ -27,10 +29,11 @@ router.get('/departments', async (req, res) => {
   }
 });
 
-// 施設一覧取得
-router.get('/facilities', async (req, res) => {
+// 施設一覧取得（所属 group_id で制限）
+router.get('/facilities', authenticate, async (req, res) => {
+  const { group_id } = req.user;
   try {
-    const result = await pool.query('SELECT * FROM facilities ORDER BY id');
+    const result = await pool.query('SELECT * FROM facilities WHERE group_id = $1 ORDER BY id', [group_id]);
     res.json(result.rows);
   } catch (err) {
     console.error('施設取得エラー:', err);
@@ -39,10 +42,11 @@ router.get('/facilities', async (req, res) => {
 });
 
 // 医師1件取得（編集用）
-router.get('/:id', async (req, res) => {
+router.get('/:id', authenticate, async (req, res) => {
   const { id } = req.params;
+  const { facility_id } = req.user;
   try {
-    const result = await pool.query('SELECT * FROM doctors WHERE id = $1', [id]);
+    const result = await pool.query('SELECT * FROM doctors WHERE id = $1 AND facility_id = $2', [id, facility_id]);
     if (result.rows.length === 0) {
       return res.status(404).json({ message: '医師が見つかりません' });
     }
@@ -54,18 +58,23 @@ router.get('/:id', async (req, res) => {
 });
 
 // 医師情報の更新
-router.put('/:id', async (req, res) => {
+router.put('/:id', authenticate, async (req, res) => {
   const { id } = req.params;
   const { name, department_id, facility_id } = req.body;
+  const requesterFacilityId = req.user.facility_id;
 
   if (!name || !department_id || !facility_id) {
     return res.status(400).json({ message: '全ての項目を入力してください' });
   }
 
+  if (Number(facility_id) !== requesterFacilityId) {
+    return res.status(403).json({ message: '施設の不一致: 更新権限がありません' });
+  }
+
   try {
     const result = await pool.query(
-      'UPDATE doctors SET name = $1, department_id = $2, facility_id = $3 WHERE id = $4 RETURNING *',
-      [name, department_id, facility_id, id]
+      'UPDATE doctors SET name = $1, department_id = $2, facility_id = $3 WHERE id = $4 AND facility_id = $5 RETURNING *',
+      [name, department_id, facility_id, id, requesterFacilityId]
     );
     if (result.rowCount === 0) {
       return res.status(404).json({ message: '医師が見つかりません' });
@@ -78,10 +87,11 @@ router.put('/:id', async (req, res) => {
 });
 
 // 医師削除
-router.delete('/:id', async (req, res) => {
+router.delete('/:id', authenticate, async (req, res) => {
   const { id } = req.params;
+  const { facility_id } = req.user;
   try {
-    const result = await pool.query('DELETE FROM doctors WHERE id = $1 RETURNING *', [id]);
+    const result = await pool.query('DELETE FROM doctors WHERE id = $1 AND facility_id = $2 RETURNING *', [id, facility_id]);
     if (result.rowCount === 0) {
       return res.status(404).json({ message: '医師が見つかりません' });
     }

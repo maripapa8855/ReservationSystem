@@ -1,36 +1,28 @@
--- groups table
-INSERT INTO groups (name) VALUES
-('GroupA'),
-('GroupB');
+-- seed.sql
 
--- facilities table
-INSERT INTO facilities (name, group_id) VALUES
-('FacilityA', 1),
-('FacilityB', 1),
-('FacilityC', 2);
+INSERT INTO groups (name) VALUES ('GroupA'), ('GroupB');
 
--- departments table
+INSERT INTO facilities (name, group_id) VALUES ('FacilityA', 1), ('FacilityB', 1), ('FacilityC', 2);
+
 INSERT INTO departments (name, facility_id) VALUES
-('InternalMedicine', 1),
+('Internal Medicine', 1),
 ('Surgery', 1),
 ('Pediatrics', 2),
-('Dermatology', 3);
+('Dermatology', 2),
+('Orthopedics', 3);
 
--- doctors table (with available_days: Mon-Fri)
-INSERT INTO doctors (name, facility_id, department_id, available_days) VALUES
-('TaroSato', 1, 1, ARRAY[1,2,3,4,5]),
-('HanakoSuzuki', 1, 2, ARRAY[1,2,3,4,5]),
-('KenichiTakahashi', 2, 3, ARRAY[1,2,3,4,5]),
-('MisakiTanaka', 3, 4, ARRAY[1,2,3,4,5]);
+INSERT INTO doctors (name, department_id, facility_id) VALUES
+('Taro Sato', 1, 1),
+('Hanako Suzuki', 2, 1),
+('Ichiro Tanaka', 3, 2),
+('Jiro Yamada', 4, 2),
+('Saburo Ito', 5, 3);
 
--- admins table (password: password123)
-INSERT INTO admins (name, email, password, role, group_id, facility_id) VALUES
-('SuperAdmin', 'superadmin@example.com', '$2b$10$MwqIvJeGbGcNcy.P0UmcYev1qVzyzPdrwScNbdlksCQ9uMNfB1XQO', 'superadmin', 1, NULL),
-('AdminA', 'adminA@example.com', '$2b$10$MwqIvJeGbGcNcy.P0UmcYev1qVzyzPdrwScNbdlksCQ9uMNfB1XQO', 'facilityadmin', 1, 1),
-('AdminB', 'adminB@example.com', '$2b$10$MwqIvJeGbGcNcy.P0UmcYev1qVzyzPdrwScNbdlksCQ9uMNfB1XQO', 'facilityadmin', 2, 3);
+INSERT INTO users (name, email, password, phone, role, group_id, facility_id) VALUES
+('Test User 1', 'user1@example.com', '$2b$10$QIiSIXzYMrWGyB6QU6xYtOYOEqgGRE8K8ZIWDzp1PqNxhFtTNNBri', '09011111111', 'user', 1, 1),
+('Test User 2', 'user2@example.com', '$2b$10$QIiSIXzYMrWGyB6QU6xYtOYOEqgGRE8K8ZIWDzp1PqNxhFtTNNBri', '09022222222', 'user', 1, 2);
 
--- users table (password: userpass123)
-INSERT INTO users (name, email, password, phone, role, group_id) VALUES
-('TestTaro', 'patientA@example.com', '$2b$10$EZqbrjK2TTiJZebqpduciOqGDKQwyDIkQjZ1yQ/LoKKmQ1ZhybNqK', '09011112222', 'user', 1),
-('TestHanako', 'patientB@example.com', '$2b$10$EZqbrjK2TTiJZebqpduciOqGDKQwyDIkQjZ1yQ/LoKKmQ1ZhybNqK', '09033334444', 'user', 1),
-('TestKenichi', 'patientC@example.com', '$2b$10$EZqbrjK2TTiJZebqpduciOqGDKQwyDIkQjZ1yQ/LoKKmQ1ZhybNqK', '09055556666', 'user', 2);
+INSERT INTO admins (name, email, password, phone, role, group_id, facility_id) VALUES
+('Super Admin', 'superadmin@example.com', '$2b$10$QIiSIXzYMrWGyB6QU6xYtOYOEqgGRE8K8ZIWDzp1PqNxhFtTNNBri', '09033333333', 'superadmin', 1, NULL),
+('Group Admin', 'groupadmin@example.com', '$2b$10$QIiSIXzYMrWGyB6QU6xYtOYOEqgGRE8K8ZIWDzp1PqNxhFtTNNBri', '09044444444', 'groupadmin', 1, NULL),
+('Facility Admin', 'facilityadmin@example.com', '$2b$10$QIiSIXzYMrWGyB6QU6xYtOYOEqgGRE8K8ZIWDzp1PqNxhFtTNNBri', '09055555555', 'facilityadmin', 1, 1);

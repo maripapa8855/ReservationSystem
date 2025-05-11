@@ -32,7 +32,7 @@ router.post('/logout', (req, res) => {
 // ログイン状態チェック
 router.get('/check', (req, res) => {
   console.log('🧪 GET /auth/check');
-  check(req, res);
+  authController.check(req, res);
 });
 
 // 現在のユーザー情報取得（/auth/me）

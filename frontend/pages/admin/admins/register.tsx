@@ -16,18 +16,21 @@ export default function AdminRegisterPage() {
   useEffect(() => {
     const fetchGroups = async () => {
       try {
-        const res = await axios.get("http://localhost:5000/groups");
+        const res = await axios.get("http://localhost:5000/groups", {
+          withCredentials: true, // 🔴 これを追加
+        });
         setGroups(res.data);
       } catch (err) {
         console.error("グループ取得エラー:", err);
         alert("グループの取得に失敗しました");
+        router.push("/admin"); // 認証エラー時に管理者TOPへ
       } finally {
         setLoading(false);
       }
     };
     fetchGroups();
   }, []);
-
+  
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
@@ -45,6 +48,11 @@ export default function AdminRegisterPage() {
   };
 
   if (loading) return <p className="p-6">読み込み中...</p>;
+
+  // facilityadmin・viewer は画面アクセス禁止
+  if (role === 'facilityadmin' || role === 'viewer') {
+    return <p className="p-6 text-red-600">この権限では管理者登録はできません。</p>;
+  }
 
   return (
     <div className="p-6 max-w-md mx-auto">
