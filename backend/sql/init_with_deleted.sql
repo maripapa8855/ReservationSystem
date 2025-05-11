@@ -9,6 +9,7 @@ DROP TABLE IF EXISTS doctors;
 DROP TABLE IF EXISTS groups;
 DROP TABLE IF EXISTS holidays;
 DROP TABLE IF EXISTS notifications;
+DROP TABLE IF EXISTS schedules;
 
 CREATE TABLE groups (
     id SERIAL PRIMARY KEY,
@@ -20,7 +21,8 @@ CREATE TABLE facilities (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     group_id INTEGER REFERENCES groups(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 CREATE TABLE departments (
@@ -28,7 +30,8 @@ CREATE TABLE departments (
     name TEXT NOT NULL,
     facility_id INTEGER REFERENCES facilities(id),
     group_id INTEGER REFERENCES groups(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 CREATE TABLE doctors (
@@ -36,7 +39,8 @@ CREATE TABLE doctors (
     name TEXT NOT NULL,
     department_id INTEGER REFERENCES departments(id),
     facility_id INTEGER REFERENCES facilities(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 CREATE TABLE users (
@@ -48,7 +52,8 @@ CREATE TABLE users (
     role TEXT NOT NULL DEFAULT 'user',
     group_id INTEGER REFERENCES groups(id),
     facility_id INTEGER REFERENCES facilities(id),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 CREATE TABLE admins (
@@ -71,7 +76,8 @@ CREATE TABLE reservations (
     facility_id INTEGER REFERENCES facilities(id),
     date DATE NOT NULL,
     time TIME NOT NULL,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 CREATE TABLE holidays (
@@ -79,7 +85,8 @@ CREATE TABLE holidays (
     facility_id INTEGER REFERENCES facilities(id),
     date DATE NOT NULL,
     reason TEXT,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
 
 CREATE TABLE notifications (
@@ -88,5 +95,18 @@ CREATE TABLE notifications (
     type TEXT NOT NULL,
     message TEXT NOT NULL,
     read BOOLEAN DEFAULT FALSE,
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
+);
+
+CREATE TABLE schedules (
+    id SERIAL PRIMARY KEY,
+    doctor_id INTEGER REFERENCES doctors(id),
+    group_id INTEGER REFERENCES groups(id),
+    facility_id INTEGER REFERENCES facilities(id),
+    weekday INTEGER NOT NULL,
+    start_time TIME NOT NULL,
+    end_time TIME NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    deleted_at TIMESTAMP
 );
