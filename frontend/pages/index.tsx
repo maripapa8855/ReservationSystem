@@ -10,8 +10,7 @@ export default function HomePage() {
   const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    if (loading) return; // 認証チェックが完了するまで待機
-
+    if (loading) return;
     if (!userId) {
       alert("認証情報が不足しています。ログインし直してください。");
       router.push("/login");
@@ -30,6 +29,18 @@ export default function HomePage() {
       console.error("予約一覧取得エラー:", err);
     } finally {
       setFetching(false);
+    }
+  };
+
+  const handleReserveClick = () => {
+    console.log("🔍 push前 group_id:", groupId, "facility_id:", facilityId);
+    if (groupId && facilityId) {
+      router.push({
+        pathname: "/reserve/step2",
+        query: { group_id: groupId.toString(), facility_id: facilityId.toString() },
+      });
+    } else {
+      alert("group_id または facility_id が取得できていません。ログインし直してください。");
     }
   };
 
@@ -57,7 +68,7 @@ export default function HomePage() {
             </ul>
           )}
           <button
-            onClick={() => router.push("/reserve")}
+            onClick={handleReserveClick}
             className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
           >
             新規予約をする
@@ -69,7 +80,12 @@ export default function HomePage() {
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">施設管理者メニュー</h2>
           <button
-            onClick={() => router.push("/admin/facilities")}
+            onClick={() =>
+              router.push({
+                pathname: "/admin/facilities",
+                query: { group_id: groupId, facility_id: facilityId },
+              })
+            }
             className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
           >
             施設管理画面へ
@@ -81,7 +97,12 @@ export default function HomePage() {
         <div className="mb-6">
           <h2 className="text-xl font-semibold mb-2">統括管理者メニュー</h2>
           <button
-            onClick={() => router.push("/admin")}
+            onClick={() =>
+              router.push({
+                pathname: "/admin",
+                query: { group_id: groupId, facility_id: facilityId },
+              })
+            }
             className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
           >
             管理者ダッシュボードへ

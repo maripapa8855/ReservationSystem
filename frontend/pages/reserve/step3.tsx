@@ -13,16 +13,47 @@ export default function Step3SelectDoctor() {
 
   const [doctors, setDoctors] = useState<Doctor[]>([]);
   const [selectedDoctor, setSelectedDoctor] = useState<number | null>(null);
+  const [facilityName, setFacilityName] = useState('');
+  const [departmentName, setDepartmentName] = useState('');
 
   useEffect(() => {
     if (!group_id || !facility_id || !department_id) return;
 
-    axios
-      .get(`http://localhost:5000/doctors?group_id=${group_id}&facility_id=${facility_id}&department_id=${department_id}`, {
-        withCredentials: true,
-      })
-      .then((res) => setDoctors(res.data))
-      .catch((err) => console.error('医師取得エラー:', err));
+    const fetchDoctors = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/doctors?group_id=${group_id}&facility_id=${facility_id}&department_id=${department_id}`,
+          { withCredentials: true }
+        );
+        setDoctors(res.data);
+      } catch (err) {
+        console.error('医師取得エラー:', err);
+      }
+    };
+
+    const fetchFacility = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/facilities/${facility_id}`);
+        setFacilityName(res.data.name);
+      } catch (err) {
+        setFacilityName('(取得失敗)');
+      }
+    };
+
+    const fetchDepartment = async () => {
+      try {
+        const res = await axios.get(
+          `http://localhost:5000/departments/${department_id}`
+        );
+        setDepartmentName(res.data.name);
+      } catch (err) {
+        setDepartmentName('(取得失敗)');
+      }
+    };
+
+    fetchDoctors();
+    fetchFacility();
+    fetchDepartment();
   }, [group_id, facility_id, department_id]);
 
   const handleNext = () => {
@@ -63,6 +94,12 @@ export default function Step3SelectDoctor() {
             </option>
           ))}
         </select>
+      </div>
+
+      {/* 選択情報表示（ボタンの直上） */}
+      <div className="text-sm text-gray-700 mb-4">
+        <p>選択中の施設：{facilityName}</p>
+        <p>選択中の診療科：{departmentName}</p>
       </div>
 
       <button

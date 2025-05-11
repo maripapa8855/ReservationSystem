@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
 
@@ -7,6 +7,7 @@ export default function RegisterPage() {
 
   const [groupId, setGroupId] = useState<string | null>(null);
   const [facilityId, setFacilityId] = useState<string | null>(null);
+  const [facilityName, setFacilityName] = useState("");
 
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -16,20 +17,40 @@ export default function RegisterPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (typeof router.query.group_id === "string") {
-      setGroupId(router.query.group_id);
+    if (!router.isReady) return;
+
+    const { group_id, facility_id } = router.query;
+
+    if (!group_id || !facility_id) {
+      alert("登録には group_id と facility_id が必要です");
+      router.push("/");
+      return;
     }
-    if (typeof router.query.facility_id === "string") {
-      setFacilityId(router.query.facility_id);
-    }
-  }, [router.query]);
+
+    setGroupId(group_id as string);
+    setFacilityId(facility_id as string);
+
+    const fetchFacility = async () => {
+      try {
+        const res = await axios.get(`http://localhost:5000/facilities/${facility_id}`, {
+          withCredentials: true,
+        });
+        setFacilityName(res.data.name);
+      } catch (err) {
+        console.error("施設名取得エラー:", err);
+        setFacilityName("(施設名取得失敗)");
+      }
+    };
+
+    fetchFacility();
+  }, [router.isReady]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
 
     if (!groupId || !facilityId) {
-      alert("URLに group_id と facility_id が必要です");
+      setError("登録に必要な情報が不足しています");
       return;
     }
 
@@ -44,7 +65,7 @@ export default function RegisterPage() {
       });
 
       console.log("✅ 登録成功:", res.data);
-      setSuccess(true); // 成功時に画面切り替え
+      setSuccess(true);
     } catch (err: any) {
       console.error("登録エラー:", err);
       setError(err.response?.data?.message || "登録に失敗しました");
@@ -67,6 +88,7 @@ export default function RegisterPage() {
   return (
     <div className="p-6 max-w-md mx-auto">
       <h1 className="text-xl font-bold mb-2">利用者登録</h1>
+      {facilityName && <p className="mb-4">施設: {facilityName}</p>}
       {error && <p className="text-red-600 mb-4">{error}</p>}
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>

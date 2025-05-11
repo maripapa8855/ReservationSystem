@@ -1,94 +1,108 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/router";
 import axios from "axios";
-import Link from "next/link";
+import { useUser } from "../contexts/UserContext";
 
-export default function AdminMenu() {
+export default function HomePage() {
   const router = useRouter();
-  const [authChecked, setAuthChecked] = useState(false);
-  const [role, setRole] = useState("");
+  const { userId, name, email, groupId, facilityId, role, loading } = useUser();
+  const [reservations, setReservations] = useState<any[]>([]);
+  const [fetching, setFetching] = useState(true);
 
   useEffect(() => {
-    axios
-      .get("http://localhost:5000/admin/check", { withCredentials: true })
-      .then((res) => {
-        setRole(res.data.role);
-        setAuthChecked(true);
-      })
-      .catch(() => {
-        router.push("/admin/login");
-      });
-  }, []);
+    if (loading) return;
 
-  const handleLogout = async () => {
+    if (!userId) {
+      alert("認証情報が不足しています。ログインし直してください。");
+      router.push("/login");
+    } else {
+      fetchReservations();
+    }
+  }, [loading, userId]);
+
+  const fetchReservations = async () => {
     try {
-      await axios.post("http://localhost:5000/admin/logout", {}, { withCredentials: true });
-      router.push("/admin/login");
+      const res = await axios.get("http://localhost:5000/reservations", {
+        withCredentials: true,
+      });
+      setReservations(res.data);
     } catch (err) {
-      console.error("ログアウトエラー:", err);
-      alert("ログアウトに失敗しました");
+      console.error("予約一覧取得エラー:", err);
+    } finally {
+      setFetching(false);
     }
   };
 
-  if (!authChecked) return <p className="p-4">認証確認中...</p>;
+  if (loading || fetching) return <p className="p-6">読み込み中...</p>;
 
   return (
-    <div className="p-6">
-      <div className="flex justify-between items-center mb-6">
-        <h1 className="text-2xl font-bold">管理者メニュー</h1>
-        <button
-          onClick={handleLogout}
-          className="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600"
-        >
-          ログアウト
-        </button>
-      </div>
-      <ul className="space-y-4">
-        <li>
-          <Link href="/admin/facilities" className="text-blue-600 underline">
-            🏥 施設管理
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/doctors" className="text-blue-600 underline">
-            👨‍⚕️ 医師管理
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/departments" className="text-blue-600 underline">
-            🏷 診療科管理
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/group" className="text-blue-600 underline">
-            🏢 施設グループ管理
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/holidays" className="text-blue-600 underline">
-            📅 休診日管理
-          </Link>
-        </li>
-        <li>
-          <Link href="/admin/notifications" className="text-blue-600 underline">
-            🔔 通知設定
-          </Link>
-        </li>
-        {role === "super_admin" && (
-          <>
-            <li>
-              <Link href="/admin/admins" className="text-blue-600 underline">
-                👥 管理者一覧
-              </Link>
-            </li>
-            <li>
-              <Link href="/admin/admins/register" className="text-blue-600 underline">
-                👤 管理者の追加登録
-              </Link>
-            </li>
-          </>
-        )}
-      </ul>
+    <div className="p-6 max-w-4xl mx-auto">
+      <h1 className="text-2xl font-bold mb-4">病院予約システム トップページ</h1>
+      <p className="mb-4">
+        ようこそ、{name} さん（メール: {email}、役割: {role}）！
+      </p>
+
+      {role === "user" && (
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">あなたの予約一覧</h2>
+          {reservations.length === 0 ? (
+            <p>予約はありません。</p>
+          ) : (
+            <ul className="list-disc pl-5">
+              {reservations.map((r) => (
+                <li key={r.id}>
+                  {r.date} {r.time} - {r.doctor_name}（{r.department_name}）
+                </li>
+              ))}
+            </ul>
+          )}
+          <button
+            onClick={() =>
+              router.push({
+                pathname: "/reserve/step2",
+                query: { group_id: groupId, facility_id: facilityId },
+              })
+            }
+            className="mt-4 bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            新規予約をする
+          </button>
+        </div>
+      )}
+
+      {role === "facilityadmin" && (
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">施設管理者メニュー</h2>
+          <button
+            onClick={() =>
+              router.push({
+                pathname: "/admin/facilities",
+                query: { group_id: groupId, facility_id: facilityId },
+              })
+            }
+            className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+          >
+            施設管理画面へ
+          </button>
+        </div>
+      )}
+
+      {role === "superadmin" && (
+        <div className="mb-6">
+          <h2 className="text-xl font-semibold mb-2">統括管理者メニュー</h2>
+          <button
+            onClick={() =>
+              router.push({
+                pathname: "/admin",
+                query: { group_id: groupId, facility_id: facilityId },
+              })
+            }
+            className="bg-purple-600 text-white px-4 py-2 rounded hover:bg-purple-700"
+          >
+            管理者ダッシュボードへ
+          </button>
+        </div>
+      )}
     </div>
   );
 }

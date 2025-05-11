@@ -27,6 +27,7 @@ CREATE TABLE departments (
     id SERIAL PRIMARY KEY,
     name TEXT NOT NULL,
     facility_id INTEGER REFERENCES facilities(id),
+    group_id INTEGER REFERENCES groups(id),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

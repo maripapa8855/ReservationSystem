@@ -11,6 +11,29 @@ export default function Step4ConfirmReservation() {
   const [shifts, setShifts] = useState<any[]>([]);
   const [availableTimes, setAvailableTimes] = useState<string[]>([]);
 
+  const [facilityName, setFacilityName] = useState('');
+  const [departmentName, setDepartmentName] = useState('');
+  const [doctorName, setDoctorName] = useState('');
+
+  // 選択中の名前取得
+  useEffect(() => {
+    if (facility_id) {
+      axios.get(`http://localhost:5000/facilities/${facility_id}`).then((res) => {
+        setFacilityName(res.data.name);
+      }).catch(() => setFacilityName('(取得失敗)'));
+    }
+    if (department_id) {
+      axios.get(`http://localhost:5000/departments/${department_id}`).then((res) => {
+        setDepartmentName(res.data.name);
+      }).catch(() => setDepartmentName('(取得失敗)'));
+    }
+    if (doctor_id) {
+      axios.get(`http://localhost:5000/doctors/${doctor_id}`).then((res) => {
+        setDoctorName(res.data.name);
+      }).catch(() => setDoctorName('(取得失敗)'));
+    }
+  }, [facility_id, department_id, doctor_id]);
+
   // シフト取得
   useEffect(() => {
     if (!group_id || !doctor_id) return;
@@ -115,6 +138,13 @@ export default function Step4ConfirmReservation() {
           </select>
         </div>
       )}
+
+      {/* 選択中の情報をボタン直上に表示 */}
+      <div className="text-sm text-gray-700 mb-4">
+        <p>選択中の施設：{facilityName}</p>
+        <p>診療科：{departmentName}</p>
+        <p>担当医：{doctorName}</p>
+      </div>
 
       <button
         className="w-full bg-green-600 text-white py-2 rounded hover:bg-green-700 transition"

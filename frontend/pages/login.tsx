@@ -15,31 +15,29 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (!router.isReady) return;
-  
-    const groupId = router.query.group_id;
-    const facilityId = router.query.facility_id;
-  
-    if (!groupId || !facilityId) {
+    
+    console.log("📦 router.query:", router.query); // ← これ追加
+
+    if (!group_id || !facility_id) {
       alert("ログインには group_id と facility_id が必要です");
       router.push("/");
       return;
     }
-  
+
     const fetchFacility = async () => {
       try {
-        const res = await axios.get(`http://localhost:4000/facilities/${facilityId}`, {
-          withCredentials: true,
-        });
+        // ❌ 認証不要なので withCredentials は付けない
+        const res = await axios.get(`http://localhost:5000/facilities/${facility_id}`);
         setFacilityName(res.data.name);
       } catch (err) {
         console.error("施設名取得エラー:", err);
         setFacilityName("(施設名取得失敗)");
       }
     };
-  
+
     fetchFacility();
-  }, [router.isReady, router.query]);
-  
+  }, [router.isReady, group_id, facility_id]);
+
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");

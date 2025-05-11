@@ -3,11 +3,14 @@ const router = express.Router();
 const pool = require('../db');
 const { authenticate } = require('../middleware/authMiddleware');
 
-// ✅ 全施設一覧取得（例: GET /facilities）
+// ✅ 全施設一覧取得（例: GET /facilities） ※要ログイン
 router.get('/', authenticate, async (req, res) => {
   const { group_id } = req.user;
   try {
-    const result = await pool.query('SELECT * FROM facilities WHERE group_id = $1', [group_id]);
+    const result = await pool.query(
+      'SELECT * FROM facilities WHERE group_id = $1',
+      [group_id]
+    );
     res.json(result.rows);
   } catch (err) {
     console.error('全施設取得エラー:', err);
@@ -15,12 +18,14 @@ router.get('/', authenticate, async (req, res) => {
   }
 });
 
-// ✅ 単一施設取得（例: GET /facilities/:id）
-router.get('/:id', authenticate, async (req, res) => {
+// ✅ 単一施設取得（例: GET /facilities/:id）※ログイン不要に変更
+router.get('/:id', async (req, res) => {
   const { id } = req.params;
-  const { group_id } = req.user;
   try {
-    const result = await pool.query('SELECT * FROM facilities WHERE id = $1 AND group_id = $2', [id, group_id]);
+    const result = await pool.query(
+      'SELECT * FROM facilities WHERE id = $1',
+      [id]
+    );
     if (result.rows.length === 0) {
       return res.status(404).json({ message: '施設が見つかりません' });
     }
